@@ -23,10 +23,10 @@ o sistema:
 4. envia o arquivo para o participante;
 5. registra o resultado do envio.
 
-## 🔄 Fluxo da automação
+## Fluxo da automação
 
 ```text
-📊 Lista de participantes
+ Lista de participantes
        │
        ▼
  Google Apps Script
