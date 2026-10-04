@@ -1,0 +1,317 @@
+// ============================================================
+// CONFIGURAÇÕES
+// ============================================================
+
+// ID do seu modelo de certificado no Google Slides
+var TEMPLATE_ID = "COLOQUE_AQUI_O_ID_DO_SEU_SLIDE";
+
+// ID da pasta onde os certificados serão salvos
+var PASTA_DESTINO_ID = "COLOQUE_AQUI_O_ID_DA_SUA_PASTA";
+
+// Assunto do e-mail
+var ASSUNTO_EMAIL = "Seu certificado";
+
+// Mensagem do e-mail
+var MENSAGEM_EMAIL =
+  "Olá {{NOME}},\n\n" +
+  "Seu certificado está em anexo.\n\n" +
+  "Parabéns pela participação!\n\n" +
+  "Atenciosamente.";
+
+
+// ============================================================
+// ENVIA TODOS OS CERTIFICADOS
+// ============================================================
+
+function enviarTodosCertificados() {
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+  var aba = planilha.getActiveSheet();
+
+  var ultimaLinha = aba.getLastRow();
+
+  if (ultimaLinha < 2) {
+    SpreadsheetApp.getUi().alert(
+      "Não há alunos na planilha."
+    );
+    return;
+  }
+
+  // Cria os títulos das colunas de controle
+  aba.getRange("C1").setValue("Status");
+  aba.getRange("D1").setValue("Data do envio");
+  aba.getRange("E1").setValue("Erro");
+
+  // Pega os dados
+  var dados = aba
+    .getRange(2, 1, ultimaLinha - 1, 5)
+    .getValues();
+
+  var enviados = 0;
+  var erros = 0;
+  var ignorados = 0;
+
+  // Percorre todos os alunos
+  for (var i = 0; i < dados.length; i++) {
+
+    var linha = i + 2;
+
+    var nome = String(dados[i][0]).trim();
+    var email = String(dados[i][1]).trim();
+    var status = String(dados[i][2]).trim();
+
+    // Ignora linha sem nome ou e-mail
+    if (!nome || !email) {
+      continue;
+    }
+
+    // Não envia novamente para quem já recebeu
+    if (status === "Enviado") {
+      ignorados++;
+      continue;
+    }
+
+    try {
+
+      // ------------------------------------------------------
+      // 1. Cria uma cópia do modelo
+      // ------------------------------------------------------
+
+      var modelo = DriveApp.getFileById(TEMPLATE_ID);
+
+      var copia = modelo.makeCopy(
+        "Certificado - " + nome,
+        DriveApp.getFolderById(PASTA_DESTINO_ID)
+      );
+
+      var copiaId = copia.getId();
+
+      // ------------------------------------------------------
+      // 2. Abre o certificado
+      // ------------------------------------------------------
+
+      var apresentacao = SlidesApp.openById(copiaId);
+
+      // ------------------------------------------------------
+      // 3. Substitui {{NOME}} pelo nome do aluno
+      // ------------------------------------------------------
+
+      apresentacao.getSlides().forEach(function(slide) {
+
+        slide.getShapes().forEach(function(shape) {
+
+          try {
+
+            var texto = shape.getText();
+
+            if (texto) {
+              texto.replaceAllText(
+                "{{NOME}}",
+                nome
+              );
+            }
+
+          } catch (erroForma) {
+
+            // Ignora imagens e elementos sem texto
+          }
+
+        });
+
+      });
+
+      apresentacao.saveAndClose();
+
+      // ------------------------------------------------------
+      // 4. Converte para PDF
+      // ------------------------------------------------------
+
+      var pdf = DriveApp
+        .getFileById(copiaId)
+        .getAs(MimeType.PDF)
+        .setName("Certificado - " + nome + ".pdf");
+
+      // ------------------------------------------------------
+      // 5. Personaliza a mensagem
+      // ------------------------------------------------------
+
+      var mensagem = MENSAGEM_EMAIL.replace(
+        "{{NOME}}",
+        nome
+      );
+
+      // ------------------------------------------------------
+      // 6. Envia o e-mail
+      // ------------------------------------------------------
+
+      MailApp.sendEmail({
+        to: email,
+        subject: ASSUNTO_EMAIL,
+        body: mensagem,
+        attachments: [pdf]
+      });
+
+      // ------------------------------------------------------
+      // 7. Marca como enviado
+      // ------------------------------------------------------
+
+      aba.getRange(linha, 3).setValue("Enviado");
+
+      aba.getRange(linha, 4).setValue(
+        new Date()
+      );
+
+      aba.getRange(linha, 5).setValue("");
+
+      enviados++;
+
+      // Pequena pausa entre os envios
+      Utilities.sleep(1000);
+
+    } catch (erro) {
+
+      // ------------------------------------------------------
+      // Se houver erro
+      // ------------------------------------------------------
+
+      aba.getRange(linha, 3).setValue("Erro");
+
+      aba.getRange(linha, 4).setValue("");
+
+      aba.getRange(linha, 5).setValue(
+        erro.toString()
+      );
+
+      erros++;
+    }
+  }
+
+  // ----------------------------------------------------------
+  // Resultado final
+  // ----------------------------------------------------------
+
+  SpreadsheetApp.getUi().alert(
+    "Processamento concluído!\n\n" +
+    "Certificados enviados: " + enviados + "\n" +
+    "Erros: " + erros + "\n" +
+    "Já enviados e ignorados: " + ignorados
+  );
+}
+
+
+// ============================================================
+// TESTE — ENVIA SOMENTE O PRIMEIRO ALUNO
+// ============================================================
+
+function enviarPrimeiroTeste() {
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+  var aba = planilha.getActiveSheet();
+
+  var nome = String(
+    aba.getRange("A2").getValue()
+  ).trim();
+
+  var email = String(
+    aba.getRange("B2").getValue()
+  ).trim();
+
+  if (!nome || !email) {
+
+    SpreadsheetApp.getUi().alert(
+      "Preencha o nome e o e-mail na linha 2."
+    );
+
+    return;
+  }
+
+  try {
+
+    // Cria cópia do modelo
+    var modelo = DriveApp.getFileById(TEMPLATE_ID);
+
+    var copia = modelo.makeCopy(
+      "Certificado - " + nome,
+      DriveApp.getFolderById(PASTA_DESTINO_ID)
+    );
+
+    var copiaId = copia.getId();
+
+    // Abre o certificado
+    var apresentacao = SlidesApp.openById(copiaId);
+
+    // Substitui o nome
+    apresentacao.getSlides().forEach(function(slide) {
+
+      slide.getShapes().forEach(function(shape) {
+
+        try {
+
+          var texto = shape.getText();
+
+          if (texto) {
+
+            texto.replaceAllText(
+              "{{NOME}}",
+              nome
+            );
+
+          }
+
+        } catch (erroForma) {
+
+          // Ignora elementos que não possuem texto
+
+        }
+
+      });
+
+    });
+
+    apresentacao.saveAndClose();
+
+    // Cria o PDF
+    var pdf = DriveApp
+      .getFileById(copiaId)
+      .getAs(MimeType.PDF)
+      .setName("Certificado - " + nome + ".pdf");
+
+    // Personaliza mensagem
+    var mensagem = MENSAGEM_EMAIL.replace(
+      "{{NOME}}",
+      nome
+    );
+
+    // Envia
+    MailApp.sendEmail({
+      to: email,
+      subject: ASSUNTO_EMAIL,
+      body: mensagem,
+      attachments: [pdf]
+    });
+
+    // Marca na planilha
+    aba.getRange("C2").setValue("Enviado");
+    aba.getRange("D2").setValue(new Date());
+    aba.getRange("E2").setValue("");
+
+    SpreadsheetApp.getUi().alert(
+      "Teste concluído!\n\n" +
+      "Certificado enviado para:\n" +
+      email
+    );
+
+  } catch (erro) {
+
+    aba.getRange("C2").setValue("Erro");
+    aba.getRange("E2").setValue(
+      erro.toString()
+    );
+
+    SpreadsheetApp.getUi().alert(
+      "Ocorreu um erro:\n\n" +
+      erro.toString()
+    );
+  }
+}
+```
