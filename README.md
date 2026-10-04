@@ -23,7 +23,7 @@ o sistema:
 4. envia o arquivo para o participante;
 5. registra o resultado do envio.
 
-## Fluxo da automação
+# Fluxo da automação
 
 ```text
  Lista de participantes
@@ -42,7 +42,7 @@ o sistema:
 Google Drive
 ```
 
-## Funcionalidades
+# Funcionalidades
 
 * Processamento de múltiplos participantes
 * Personalização automática dos certificados
@@ -56,7 +56,7 @@ Google Drive
 * Função de teste individual
 * Possibilidade de reutilização para diferentes turmas e eventos
 
-## Tecnologias utilizadas
+# Tecnologias utilizadas
 
 * JavaScript
 * Google Apps Script
@@ -65,7 +65,7 @@ Google Drive
 * Google Drive
 * MailApp
 
-## Estrutura da planilha
+# Estrutura da planilha
 
 A planilha inicialmente contém:
 
@@ -78,7 +78,7 @@ Durante a execução, o sistema adiciona colunas de controle:
 * Data do envio
 * Erro
 
-## Controle de duplicidade
+# Controle de duplicidade
 
 Uma das funcionalidades importantes do projeto é evitar o envio duplicado.
 
@@ -94,7 +94,7 @@ o participante é ignorado.
 
 Isso permite executar o script novamente sem reenviar certificados que já foram processados.
 
-## Personalização do certificado
+# Personalização do certificado
 
 O modelo é criado no Google Slides utilizando o marcador:
 
@@ -104,7 +104,7 @@ O modelo é criado no Google Slides utilizando o marcador:
 
 O script substitui esse marcador pelo nome correspondente da planilha.
 
-## Modo de teste
+# Modo de teste
 
 O projeto possui uma função para testar o processo utilizando apenas o primeiro participante da lista.
 
@@ -117,7 +117,7 @@ Isso permite verificar:
 
 Somente após a validação deve ser executada a função de processamento em massa.
 
-## Limitações
+# Limitações
 
 O Google Apps Script possui limites de tempo de execução e envio de e-mails.
 
@@ -125,7 +125,7 @@ Para listas maiores, o processamento pode precisar ser dividido em lotes ou adap
 
 O projeto foi estruturado para reduzir o impacto desses limites através do controle de status dos participantes.
 
-## Possíveis melhorias
+# Possíveis melhorias
 
 * Processamento automático em lotes;
 * Retomada automática após limite de execução;
@@ -138,14 +138,14 @@ O projeto foi estruturado para reduzir o impacto desses limites através do cont
 * Seleção de diferentes modelos;
 * Personalização de múltiplos campos.
 
-## Resultado
+# Resultado
 
 O sistema permite transformar uma lista de participantes em certificados personalizados sem a necessidade de editar e enviar cada documento manualmente.
 
 Em um teste real, o sistema foi utilizado para automatizar o envio de certificados para uma lista de 80 participantes.
 
 
-## Autora
+# Autora
 
 Kamylla Carlos
 
